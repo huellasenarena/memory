@@ -1,0 +1,233 @@
+/* Sólo negro y blanco. Ningún color, ninguna sombra, ningún borde
+   que no sea un filete. La jerarquía se hace con espacio y con gris. */
+
+:root {
+  --tinta:  #111;
+  --fondo:  #fff;
+  --palido: #b4b4b4;
+  --filete: #e6e6e6;
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root { --tinta: #ececec; --fondo: #000; --palido: #5a5a5a; --filete: #232323; }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--tinta);
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+.pantalla { display: none; }
+body[data-vista='biblioteca'] #biblioteca,
+body[data-vista='ensayo']     #ensayo,
+body[data-vista='entero']     #entero,
+body[data-vista='anadir']     #anadir { display: flex; }
+
+.pantalla {
+  flex-direction: column;
+  min-height: 100%;
+  padding: env(safe-area-inset-top) 16px calc(16px + env(safe-area-inset-bottom));
+}
+
+/* ─────────────────────────── biblioteca ─────────────────────────── */
+
+#biblioteca { max-width: 34rem; margin: 0 auto; justify-content: center; }
+
+h1 {
+  font-size: 1rem;
+  font-weight: normal;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--palido);
+  margin: 0 0 2.5rem;
+}
+
+#lista { list-style: none; margin: 0; padding: 0; }
+#lista li { margin: 0 0 2.25rem; }
+
+.titulo {
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  line-height: 1.25;
+  color: var(--tinta);
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+.titulo:hover { text-decoration: underline; text-underline-offset: .2em; }
+
+.meta {
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .04em;
+  color: var(--palido);
+  margin: .35rem 0 0;
+}
+
+.mini { height: 1px; background: var(--filete); margin: .75rem 0 .5rem; }
+.mini i { display: block; height: 100%; background: var(--tinta); }
+
+.acciones-linea { display: flex; gap: 1.25rem; }
+
+/* ─────────────────────────── ensayo ─────────────────────────────── */
+
+#ensayo, #entero, #anadir { max-width: 40rem; margin: 0 auto; width: 100%; }
+
+header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1.25rem 0;
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .04em;
+  color: var(--palido);
+}
+header > span:nth-of-type(1) { flex: 1; }
+
+.volver {
+  background: none; border: 0; padding: 0;
+  font: inherit; color: var(--palido); cursor: pointer;
+}
+.volver:hover { color: var(--tinta); }
+
+.centro {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem 0;
+}
+.centro.ancho { justify-content: flex-start; gap: 1rem; }
+
+#rastro {
+  margin: 0;
+  color: var(--palido);
+  font-size: 1rem;
+  min-height: 1.6em;
+}
+
+#apunte { margin: 0; font-size: 1.45rem; line-height: 1.5; min-height: 1.5em; }
+#apunte.iniciales { font-family: var(--mono); letter-spacing: .06em; font-size: 1.2rem; }
+#apunte.puntos { color: var(--palido); letter-spacing: .5em; }
+#apunte.final { color: var(--palido); font-size: 1.1rem; }
+
+.corregido .fallo {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  color: var(--palido);
+}
+
+.linea { display: flex; gap: .6rem; align-items: flex-start; }
+
+.signo {
+  font-family: var(--mono);
+  color: var(--palido);
+  line-height: 1.7;
+  user-select: none;
+}
+
+textarea, input[type='text'] {
+  flex: 1;
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--tinta);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--filete);
+  padding: 0 0 .35rem;
+  margin: 0;
+  resize: none;
+  overflow: hidden;
+  outline: none;
+}
+textarea:focus, input[type='text']:focus { border-bottom-color: var(--tinta); }
+textarea::placeholder, input::placeholder { color: var(--palido); }
+textarea:disabled { border-bottom-color: transparent; }
+
+#veredicto { margin: 0; min-height: 1.4em; }
+
+footer {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 0;
+  font-family: var(--mono);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--palido);
+}
+#pasos { display: flex; gap: .4rem; }
+#pasos i {
+  width: 5px; height: 5px; border-radius: 50%;
+  border: 1px solid var(--palido);
+}
+#pasos i.lleno { background: var(--tinta); border-color: var(--tinta); }
+.ajuste { flex: 1; }
+#pista { text-align: right; }
+
+#barra { height: 1px; background: var(--filete); }
+#barra i { display: block; height: 100%; background: var(--tinta); }
+
+/* ─────────────────────────── entero y añadir ────────────────────── */
+
+#entrada-entero, #nuevo-texto {
+  overflow: auto;
+  min-height: 12rem;
+  border: 1px solid var(--filete);
+  padding: .9rem;
+  border-radius: 2px;
+}
+#entrada-entero:focus, #nuevo-texto:focus { border-color: var(--tinta); }
+
+.corregido.entero p:last-child {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin: .5rem 0 0;
+}
+
+.nota { font-size: .85rem; color: var(--palido); max-width: 30rem; }
+.nota code { font-family: var(--mono); font-size: .9em; }
+
+.acciones { display: flex; gap: 1.25rem; margin: 1.25rem 0 0; }
+
+.acciones button, .enlace {
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .04em;
+  color: var(--palido);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.acciones button:hover, .enlace:hover { color: var(--tinta); }
+.enlace.activo { color: var(--tinta); text-decoration: underline; text-underline-offset: .25em; }
+
+/* ─────────────────────────── móvil ──────────────────────────────── */
+
+@media (max-width: 480px) {
+  #apunte { font-size: 1.25rem; }
+  .titulo { font-size: 1.3rem; }
+  textarea, input[type='text'] { font-size: 16px; } /* evita el zoom de iOS */
+  footer { flex-wrap: wrap; gap: .75rem 1.25rem; }
+  #pista { flex-basis: 100%; text-align: left; }
+}

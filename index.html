@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>memoria</title>
+<meta name="description" content="Memorizar monólogos escribiéndolos.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='white'/><rect x='3' y='7' width='10' height='1' fill='black'/></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-vista="biblioteca">
+
+<!-- ───────────────────────── biblioteca ───────────────────────── -->
+<section id="biblioteca" class="pantalla">
+  <h1>memoria</h1>
+  <ul id="lista"></ul>
+  <p class="acciones">
+    <button type="button" data-ir="anadir">añadir un texto</button>
+  </p>
+</section>
+
+<!-- ───────────────────────── ensayo ───────────────────────────── -->
+<section id="ensayo" class="pantalla">
+  <header>
+    <button type="button" data-ir="biblioteca" class="volver">←</button>
+    <span id="titulo"></span>
+    <span id="contador"></span>
+  </header>
+
+  <div class="centro">
+    <p id="rastro"></p>
+    <p id="apunte"></p>
+    <div class="linea">
+      <span class="signo">›</span>
+      <textarea id="entrada" rows="1" autocapitalize="off" autocorrect="off"
+                autocomplete="off" spellcheck="false"></textarea>
+    </div>
+    <p id="veredicto"></p>
+  </div>
+
+  <footer>
+    <span id="pasos"></span>
+    <span id="trozos" class="ajuste"></span>
+    <span id="pista"></span>
+  </footer>
+  <div id="barra"><i></i></div>
+</section>
+
+<!-- ───────────────────────── entero ───────────────────────────── -->
+<section id="entero" class="pantalla">
+  <header>
+    <button type="button" data-ir="biblioteca" class="volver">←</button>
+    <span id="titulo-entero"></span>
+    <span id="cuenta-entero"></span>
+  </header>
+  <div class="centro ancho">
+    <textarea id="entrada-entero" rows="12" autocapitalize="off" autocorrect="off"
+              autocomplete="off" spellcheck="false"
+              placeholder="el monólogo entero, de memoria"></textarea>
+    <p id="resultado-entero"></p>
+    <p class="acciones">
+      <button type="button" id="corregir-entero">corregir</button>
+      <button type="button" id="rehacer-entero" hidden>otra vez</button>
+    </p>
+  </div>
+</section>
+
+<!-- ───────────────────────── añadir ───────────────────────────── -->
+<section id="anadir" class="pantalla">
+  <header>
+    <button type="button" data-ir="biblioteca" class="volver">←</button>
+    <span>añadir un texto</span>
+    <span></span>
+  </header>
+  <div class="centro ancho">
+    <input id="nuevo-titulo" type="text" placeholder="título" autocomplete="off">
+    <input id="nuevo-autor" type="text" placeholder="autor (opcional)" autocomplete="off">
+    <textarea id="nuevo-texto" rows="10" placeholder="pega aquí el monólogo"></textarea>
+    <p class="acciones">
+      <button type="button" id="guardar-nuevo">guardar</button>
+      <button type="button" id="copiar-nuevo">copiar para el repo</button>
+    </p>
+    <p class="nota">
+      Guardar lo deja en este aparato. Para tenerlo también en los demás,
+      copia el bloque y pégalo en <code>monologues.js</code>.
+    </p>
+  </div>
+</section>
+
+<script src="monologues.js"></script>
+<script src="texto.js"></script>
+<script src="almacen.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

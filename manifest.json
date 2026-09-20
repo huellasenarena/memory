@@ -1,0 +1,17 @@
+{
+  "name": "memoria",
+  "short_name": "memoria",
+  "description": "Memorizar monólogos escribiéndolos.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "icono.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
