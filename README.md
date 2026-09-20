@@ -37,46 +37,55 @@ distintas.
 
 ## Añadir un monólogo
 
-Un monólogo es **un fichero de texto** en `monologues/`:
+En la app: **añadir un texto**, pegar, **guardar**. Ya está — aparece al
+instante y en tus demás aparatos en cuanto haya red.
 
-```
-Hamlet                 ← el título
-Shakespeare            ← el autor, o una línea en blanco
-                       ← una línea en blanco
-To be, or not to be…   ← el texto, con los saltos que quieras
-```
-
-Nada más. `monologues.js` lo regenera GitHub solo en cada push.
-
-**Desde la app** (móvil u ordenador) — *añadir un texto*, pegar, **añadir al
-repo**. Se abre GitHub con el fichero ya escrito: pulsas *Commit* y al minuto
-está en todos tus aparatos. Si el texto es demasiado largo para pasarlo por la
-URL, te baja el `.txt` para que lo dejes en `monologues/`.
-
-**Desde la terminal** — un solo comando:
-
-```
-pbpaste | node herramientas/nuevo.mjs "Hamlet" "Shakespeare"
-git add -A && git commit -m "Añadir Hamlet" && git push
-```
-
-**A mano** — crea el `.txt` en `monologues/` y haz push. Ya está.
-
-El botón *sólo en este aparato* guarda en el navegador sin pasar por git: sirve
-para empezar a ensayar ahora mismo, pero no viaja a los demás aparatos.
+Para que viaje entre el móvil y el ordenador hay que activar la
+sincronización una vez en cada aparato: en la biblioteca, **activar
+sincronización** y escribir la frase.
 
 ## Dónde vive cada cosa
 
-- **Los textos** son los `.txt` de `monologues/`, versionados por git. Van con
-  el repo, así que están en todos los aparatos y no se pueden perder.
-  `monologues.js` es un fichero **generado** — no lo edites a mano.
-- **El progreso** vive en el `localStorage` de cada navegador, o sea que es de
-  cada aparato. Va indexado por el *texto* de cada trozo, no por su posición:
-  cambiar el tamaño de los trozos no borra lo aprendido.
+La app es **local-first**: escribe y lee de `localStorage`, así que pinta al
+instante y funciona sin red. La base de datos es sólo el puente entre aparatos.
 
-Todo el almacenamiento pasa por `almacen.js`. Si algún día quieres que el
-progreso viaje entre aparatos, se reescriben esas funciones contra un servidor
-y el resto de la app no se entera.
+```
+escribes  →  localStorage  →  pantalla          (siempre, al instante)
+                   ↓
+             Worker + D1                        (cuando hay red)
+```
+
+Si el Worker no contesta o estás sin cobertura, la app funciona igual y ya se
+pondrá al día. Cada registro lleva una marca de tiempo; al sincronizar gana el
+más reciente, para que dos aparatos no se pisen. Los borrados son suaves: si se
+quitara la fila, el otro aparato la volvería a subir.
+
+Los `.txt` de `monologues/` se quedan como **semilla**: mientras no haya nada
+guardado, la biblioteca son ellos. Así la app arranca con contenido la primera
+vez y sin red. En cuanto guardas algo, manda lo guardado.
+
+Como los textos ya no viven en git, hay un **bajar una copia** en la biblioteca.
+Úsalo de vez en cuando.
+
+### El Worker
+
+```
+worker/src/worker.js        cuatro rutas: /todo, /monologo, /progreso
+worker/migrations/          dos tablas: monologos y progreso
+```
+
+Autenticación: una frase secreta en la cabecera `X-Frase`, guardada en el
+`localStorage` de cada aparato y **nunca en el repo**. Un solo usuario y datos
+que son textos publicados y niveles de memorización; montar OAuth sería
+desproporcionado.
+
+Para desplegarlo:
+
+```
+cd worker
+wrangler deploy
+wrangler secret put FRASE          # si alguna vez quieres cambiarla
+```
 
 ## Los ficheros
 
@@ -84,19 +93,17 @@ y el resto de la app no se entera.
 index.html               la estructura, cuatro pantallas
 style.css                sólo negro y blanco
 texto.js                 trocear, normalizar, comparar  ← la lógica difícil
-almacen.js               localStorage, aislado
+almacen.js               localStorage + sincronización, aislado del resto
 app.js                   estado + una sola función que pinta
 
-monologues/*.txt         la biblioteca, en texto plano  ← la fuente
+monologues/*.txt         la semilla del primer arranque
 monologues.js            generado a partir de ellos     ← no tocar
-herramientas/construir.mjs   .txt → monologues.js
-herramientas/nuevo.mjs       añadir uno desde la terminal
-.github/workflows/biblioteca.yml   lo regenera solo en cada push
-
-pruebas.js                          el motor
-pruebas-navegador.mjs               la app entera en Chrome
-herramientas/pruebas-construir.mjs  el constructor
+herramientas/            .txt → monologues.js, y añadir uno por terminal
+worker/                  el Worker y las migraciones de D1
 ```
+
+Sin dependencias ni compilación en la app. Se abre haciendo doble clic en
+`index.html`.
 
 ## Pruebas
 
@@ -104,16 +111,13 @@ herramientas/pruebas-construir.mjs  el constructor
 node pruebas.js                          el troceado, la tolerancia, las iniciales
 node herramientas/pruebas-construir.mjs  el paso de .txt a monologues.js
 node pruebas-navegador.mjs               la app de punta a punta
+FRASE=... node pruebas-sincro.mjs        dos aparatos contra el Worker de verdad
 ```
 
-La segunda arranca un Chrome sin ventana y escribe de verdad en la app: entra
-al ensayo, acierta, falla, comprueba que la palabra fallada sale tachada, cambia
-el tamaño de los trozos y mira que el progreso sobreviva, prueba el móvil y el
-modo oscuro. No hace falta instalar nada. Para probar antes de publicar:
+Las dos últimas arrancan Chrome sin ventana y usan la app de verdad. No hace
+falta instalar nada. `pruebas-sincro.mjs` **escribe en la base de datos real**:
+vacíala antes si tienes algo que perder.
 
 ```
-python3 -m http.server 8787
-node pruebas-navegador.mjs http://localhost:8787/index.html
+wrangler d1 execute memoria --remote --command "delete from monologos; delete from progreso;"
 ```
-
-Sin dependencias, sin compilación. Se abre haciendo doble clic en `index.html`.

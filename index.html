@@ -20,6 +20,14 @@
   <ul id="lista"></ul>
   <p class="acciones">
     <button type="button" data-ir="anadir">añadir un texto</button>
+    <button type="button" id="boton-sincro">sincronizar</button>
+    <button type="button" id="bajar-copia">bajar una copia</button>
+  </p>
+  <p class="meta" id="estado-sincro"></p>
+  <p class="linea-frase" id="caja-frase" hidden>
+    <input id="frase" type="password" autocomplete="off" spellcheck="false"
+           placeholder="frase de sincronización">
+    <button type="button" id="guardar-frase">guardar</button>
   </p>
 </section>
 
@@ -81,12 +89,10 @@
     <input id="nuevo-autor" type="text" placeholder="autor (opcional)" autocomplete="off">
     <textarea id="nuevo-texto" rows="10" placeholder="pega aquí el monólogo"></textarea>
     <p class="acciones">
-      <button type="button" id="subir-nuevo">bajar el .txt</button>
-      <button type="button" id="guardar-nuevo">sólo en este aparato</button>
+      <button type="button" id="guardar-nuevo">guardar</button>
     </p>
     <p class="nota" id="nota-nuevo">
-      Provisional: te baja el <code>.txt</code> para que lo dejes en
-      <code>monologues/</code>. Estoy montando que la app lo guarde sola.
+      Se guarda al momento y aparece en tus demás aparatos en cuanto haya red.
     </p>
   </div>
 </section>

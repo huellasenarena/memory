@@ -231,3 +231,24 @@ footer {
   footer { flex-wrap: wrap; gap: .75rem 1.25rem; }
   #pista { flex-basis: 100%; text-align: left; }
 }
+
+/* la frase de sincronización */
+.linea-frase { display: flex; gap: 1rem; align-items: baseline; margin: .5rem 0 0; }
+.linea-frase input[type='password'] {
+  flex: 1;
+  max-width: 22rem;
+  font-family: var(--mono);
+  font-size: .85rem;
+  color: var(--tinta);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--filete);
+  padding: 0 0 .3rem;
+  outline: none;
+}
+.linea-frase input[type='password']:focus { border-bottom-color: var(--tinta); }
+.linea-frase button {
+  font-family: var(--mono); font-size: .72rem; letter-spacing: .04em;
+  color: var(--palido); background: none; border: 0; padding: 0; cursor: pointer;
+}
+.linea-frase button:hover { color: var(--tinta); }

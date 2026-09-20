@@ -19,10 +19,21 @@ actor. **Habla en español** (a veces en francés).
   **dura con singular/plural y con los acentos** (en español distinguen).
 - **Estilo**: sólo negro y blanco, sin color ni en los errores (se tachan).
   Modo oscuro = el mismo blanco y negro invertido. Todo por teclado.
-- **Almacenamiento**: textos en `monologues/*.txt` (git, en todos los aparatos),
-  progreso en localStorage (por aparato), indexado por el texto normalizado del
-  trozo y no por su posición. Se valoró un backend Cloudflare + D1 como el de
-  `vocab-app` y se aplazó; `almacen.js` está aislado para poder cambiarlo.
+- **Almacenamiento**: la app es **local-first**. Escribe y lee de
+  `localStorage` (por eso pinta al instante y funciona sin red) y sincroniza
+  por detrás contra un Worker de Cloudflare con D1. Todo pasa por
+  `almacen.js`; ninguna otra parte de la app sabe que hay un servidor.
+  - Textos y progreso viven en D1. Los `.txt` de `monologues/` son **semilla**:
+    se usan mientras no haya nada guardado.
+  - Cada registro lleva `cuando`; al sincronizar gana el más reciente.
+    Los borrados son **suaves** (`borrado = 1`), porque si se quitara la fila el
+    otro aparato la volvería a subir.
+  - Auth: frase secreta en la cabecera `X-Frase`. **Nunca en el repo.**
+    Worker: `https://memoria.georg-dreym.workers.dev`, base D1 `memoria`.
+- **Se decidió sacar los textos de git** el 2026-09-20, después de montarlo al
+  revés: el usuario dijo que añadir textos tenía demasiada fricción, y la tenía
+  porque cualquier camino acababa en un commit. Si alguna vez se plantea
+  devolverlos a git, recordar por qué se sacaron.
 
 ## Reglas de la casa
 
@@ -33,6 +44,8 @@ actor. **Habla en español** (a veces en francés).
   **`node pruebas.js`** (el motor), **`node herramientas/pruebas-construir.mjs`**
   (el paso de .txt a monologues.js) y **`node pruebas-navegador.mjs`** (la app
   entera en Chrome headless, sin instalar nada).
+  `FRASE=... node pruebas-sincro.mjs` prueba dos aparatos contra el Worker,
+  pero **escribe en la base de datos real**: vaciarla antes.
 - Una sola cuenta de palabras en toda la app: `Texto.contarPalabras`. No usar
   `split(/\s+/).length`, que cuenta las rayas sueltas y descuadra con la
   corrección.

@@ -9,9 +9,6 @@
   'use strict';
 
   var TAMANOS = [8, 11, 15];
-  var REPO = 'huellasenarena/memory';
-  var RAMA = 'main';
-  var TOPE_URL = 6000;   // por encima de esto GitHub rechaza la URL: bajamos el fichero
   var $ = function (id) { return document.getElementById(id); };
 
   var estado = {
@@ -165,15 +162,35 @@
           cambiar(function () {});
         }));
       }
-      if (m.propio) {
-        acciones.appendChild(enlace('quitar', function () {
-          Almacen.borrarPropio(m.id);
-          cambiar(function () {});
-        }));
-      }
+      acciones.appendChild(enlace('quitar', function () {
+        Almacen.borrar(m.id);
+        cambiar(function () {});
+      }));
       li.appendChild(acciones);
       lista.appendChild(li);
     });
+
+    pintarSincro();
+  }
+
+  function haceCuanto(ts) {
+    var s = Math.round((Date.now() - ts) / 1000);
+    if (s < 60) return 'hace un momento';
+    if (s < 3600) return 'hace ' + Math.round(s / 60) + ' min';
+    if (s < 86400) return 'hace ' + Math.round(s / 3600) + ' h';
+    return 'hace ' + Math.round(s / 86400) + ' días';
+  }
+
+  function pintarSincro() {
+    var e = Almacen.estado();
+    var linea = $('estado-sincro');
+    $('boton-sincro').textContent = e.frase ? 'sincronizar' : 'activar sincronización';
+
+    if (e.sincronizando) linea.textContent = 'sincronizando…';
+    else if (e.error) linea.textContent = 'no se pudo sincronizar: ' + e.error;
+    else if (!e.frase) linea.textContent = 'sólo en este aparato';
+    else if (e.sincronizado) linea.textContent = 'sincronizado ' + haceCuanto(e.sincronizado);
+    else linea.textContent = 'sin sincronizar todavía';
   }
 
   function enlace(texto, alPulsar) {
@@ -389,9 +406,9 @@
   $('guardar-nuevo').onclick = function () {
     var m = recogerNuevo();
     if (!m) { this.textContent = 'falta el título o el texto'; return; }
-    Almacen.guardarPropio(m);
+    Almacen.guardar(m);
     $('nuevo-titulo').value = $('nuevo-autor').value = $('nuevo-texto').value = '';
-    this.textContent = 'sólo en este aparato';
+    this.textContent = 'guardar';
     cambiar(function (e) { e.vista = 'biblioteca'; });
   };
 
@@ -409,23 +426,43 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
-  $('subir-nuevo').onclick = function () {
-    var m = recogerNuevo();
-    if (!m) { this.textContent = 'falta el título o el texto'; return; }
+  // ─────────────────────── sincronización ───────────────────────
 
-    var ruta = 'monologues/' + m.id + '.txt';
-    var contenido = comoFichero(m);
-    var url = 'https://github.com/' + REPO + '/new/' + RAMA +
-              '?filename=' + encodeURIComponent(ruta) +
-              '&value=' + encodeURIComponent(contenido);
-
-    // El editor nuevo de GitHub ya no rellena el fichero desde la URL, así
-    // que abrirlo sólo daba un error. Hasta que la app sepa guardar sola,
-    // bajamos el .txt, que sí funciona.
-    void url;
-    bajarFichero(m.id + '.txt', contenido);
-    $('nota-nuevo').textContent = 'Bajado ' + m.id + '.txt — déjalo en monologues/ y haz push.';
+  $('boton-sincro').onclick = function () {
+    if (!Almacen.frase()) {
+      $('caja-frase').hidden = false;
+      $('frase').focus();
+      return;
+    }
+    Almacen.sincronizar();
+    pintarSincro();
   };
 
+  $('guardar-frase').onclick = function () {
+    var valor = $('frase').value.trim();
+    if (!valor) return;
+    Almacen.frase(valor);
+    $('frase').value = '';
+    $('caja-frase').hidden = true;
+    Almacen.sincronizar();
+    pintarSincro();
+  };
+
+  $('frase').addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter') { ev.preventDefault(); $('guardar-frase').click(); }
+  });
+
+  // Los textos ya no viven en git, así que conviene poder llevarse una copia.
+  $('bajar-copia').onclick = function () {
+    var todo = Almacen.monologos().map(function (m) {
+      return m.title + '\n' + (m.author || '') + '\n\n' + m.text + '\n';
+    }).join('\n\n' + '─'.repeat(60) + '\n\n');
+    bajarFichero('memoria-' + new Date().toISOString().slice(0, 10) + '.txt', todo);
+  };
+
+  // Cuando la sincronización trae algo nuevo, se repinta.
+  Almacen.alCambiar(function () { pintar(); });
+
   pintar();
+  Almacen.sincronizar();
 })();

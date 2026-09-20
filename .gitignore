@@ -1,2 +1,5 @@
 .DS_Store
 *.png
+worker/node_modules
+worker/.wrangler
+.dev.vars

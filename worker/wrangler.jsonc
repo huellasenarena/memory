@@ -1,0 +1,15 @@
+{
+  "name": "memoria",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-04-07",
+  "workers_dev": true,
+  "preview_urls": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "memoria",
+      "database_id": "57cd1633-9e1d-41b3-89cf-03daa89dacf6"
+    }
+  ],
+  "observability": { "enabled": true }
+}

@@ -6,11 +6,19 @@
 //
 // Para probar en local primero: python3 -m http.server 8787
 import { spawn } from 'node:child_process';
-import { writeFileSync, rmSync } from 'node:fs';
+import { writeFileSync, rmSync, mkdtempSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const PERFIL = '/tmp/chrome-memoria-pruebas';
-rmSync(PERFIL, { recursive: true, force: true });   // sin esto, el progreso guardado falsea las pruebas
+// Perfil nuevo en cada pasada: reutilizarlo dejaba el progreso guardado de la
+// vez anterior y falseaba las comprobaciones.
+const PERFIL = mkdtempSync(join(tmpdir(), 'memoria-chrome-'));
+process.on('exit', () => {
+  // Chrome puede seguir escribiendo mientras se cierra; si no se deja borrar,
+  // da igual: está en el directorio temporal del sistema.
+  try { rmSync(PERFIL, { recursive: true, force: true, maxRetries: 3 }); } catch (e) {}
+});
 const PORT = 9333;
 const chrome = spawn(CHROME, [
   '--headless=new', `--remote-debugging-port=${PORT}`, '--no-first-run',
@@ -130,7 +138,7 @@ await ev("[...document.querySelectorAll('#trozos .enlace')].find(b=>b.textConten
 await esperar(200);
 const despues = await ev("document.getElementById('contador').textContent.split(' / ')[1]");
 paso('cambia el número de trozos (' + antes + ' → ' + despues + ')', antes !== despues);
-paso('no se pierde el progreso', (await ev("JSON.parse(localStorage.getItem('memoria.v1')).progreso['turin-horse'] ? Object.keys(JSON.parse(localStorage.getItem('memoria.v1')).progreso['turin-horse']).length : 0")) > 0);
+paso('no se pierde el progreso', (await ev("Object.keys((JSON.parse(localStorage.getItem('memoria.v2')||'{}').progreso||{})['turin-horse']||{}).length")) > 0);
 
 console.log('\nel monólogo entero');
 await ev("document.querySelector('.volver').click()");
