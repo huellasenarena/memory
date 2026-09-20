@@ -16,6 +16,20 @@ const FRASE = process.env.FRASE;
 if (!FRASE) { console.error('\nFalta la frase:  FRASE=... node pruebas-sincro.mjs\n'); process.exit(1); }
 const BASE = process.argv[2] || 'https://huellasenarena.github.io/memory/';
 const esperar = ms => new Promise(r => setTimeout(r, ms));
+
+// Esperar a que pase algo, no a que pase un rato: con la latencia de verdad
+// (Pages + Worker + D1) los relojes fijos fallaban a veces.
+async function hasta(comprobar, descripcion, tope = 20000) {
+  const limite = Date.now() + tope;
+  let ultimo;
+  while (Date.now() < limite) {
+    ultimo = await comprobar();
+    if (ultimo) return ultimo;
+    await esperar(400);
+  }
+  console.log(`      (se agotó la espera de: ${descripcion})`);
+  return ultimo;
+}
 let fallos = 0;
 const ok = (c, n, x) => { console.log((c ? '  ✓ ' : '  ✗ ') + n + (c ? '' : '  ← ' + x)); if (!c) fallos++; };
 
@@ -55,8 +69,8 @@ await A.ev(`document.getElementById('nuevo-titulo').value='Ricardo III';
             document.getElementById('nuevo-autor').value='Shakespeare';
             document.getElementById('nuevo-texto').value='Ahora es el invierno de nuestro descontento.';
             document.getElementById('guardar-nuevo').click(); 'ok'`);
-await esperar(2500);
 ok((await A.ev("Almacen.monologos().map(m=>m.title).join(' | ')")).includes('Ricardo III'), 'aparece al instante en la lista');
+await hasta(async () => (await A.ev('Almacen.estado().sincronizado')) > 0, 'que A suba el texto');
 ok(await A.ev('Almacen.estado().error') === '', 'sin error al subirlo', await A.ev('Almacen.estado().error'));
 
 console.log('\naparato A — ensayar un poco');
@@ -71,7 +85,8 @@ await A.ev(`window.__e=function(s){var t=document.getElementById('entrada');t.va
 await esperar(300);
 const nivelA = await A.ev("Almacen.nivel('turin-horse', \"The wind's blown it away.\")");
 ok(nivelA === 1, 'el trozo sube a nivel 1', nivelA);
-await esperar(2500);
+await hasta(async () => !(await A.ev('Almacen.estado().sincronizando')), 'que A termine de subir');
+await esperar(1500);
 
 console.log('\naparato B — misma frase, parte de cero');
 ok((await B.ev('Almacen.monologos().length')) === 1, 'antes de sincronizar sólo ve el del repo');
@@ -85,18 +100,27 @@ ok(nivelB === 1, 'y también el progreso de A', nivelB);
 
 console.log('\naparato B — añadir otro y que vuelva a A');
 await B.ev(`Almacen.guardar({id:'macbeth', title:'Macbeth', author:'Shakespeare', text:'Mañana, y mañana, y mañana.'}); 'ok'`);
-await esperar(2500);
-await A.ev('Almacen.sincronizar()');
-await esperar(500);
-const titulosA = await A.ev("Almacen.monologos().map(m=>m.title).sort().join(' | ')");
+await hasta(async () => !(await B.ev('Almacen.estado().sincronizando')), 'que B suba Macbeth');
+await esperar(1500);
+const titulosA = await hasta(async () => {
+  await A.ev('Almacen.sincronizar()');
+  await esperar(600);
+  const t = await A.ev("Almacen.monologos().map(m=>m.title).sort().join(' | ')");
+  return t.includes('Macbeth') ? t : null;
+}, 'que Macbeth llegue a A') || await A.ev("Almacen.monologos().map(m=>m.title).sort().join(' | ')");
 ok(titulosA === 'Macbeth | Ricardo III | The Turin Horse', 'A ve lo que se añadió en B', titulosA);
 
 console.log('\nborrar en un sitio no resucita desde el otro');
 await A.ev("Almacen.borrar('macbeth'); 'ok'");
-await esperar(2500);
-await B.ev('Almacen.sincronizar()');
-await esperar(500);
-ok(!(await B.ev("Almacen.monologos().map(m=>m.title).join('|')")).includes('Macbeth'), 'B también lo pierde');
+await hasta(async () => !(await A.ev('Almacen.estado().sincronizando')), 'que A suba el borrado');
+await esperar(1500);
+const trasBorrar = await hasta(async () => {
+  await B.ev('Almacen.sincronizar()');
+  await esperar(600);
+  const t = await B.ev("Almacen.monologos().map(m=>m.title).join('|')");
+  return t.includes('Macbeth') ? null : t;
+}, 'que el borrado llegue a B');
+ok(trasBorrar && !trasBorrar.includes('Macbeth'), 'B también lo pierde', trasBorrar);
 await A.ev('Almacen.sincronizar()');
 await esperar(400);
 ok(!(await A.ev("Almacen.monologos().map(m=>m.title).join('|')")).includes('Macbeth'), 'y no vuelve a A en la siguiente vuelta');
@@ -110,10 +134,15 @@ ok((await A.ev('Almacen.estado().error')).length > 0, 'y avisa de que no pudo si
 await A.ir();   // recargar: vuelve fetch de verdad
 await A.ev(`Almacen.frase(${JSON.stringify(FRASE)}); 'ok'`);
 await A.ev('Almacen.sincronizar()');
-await esperar(600);
-await B.ev('Almacen.sincronizar()');
-await esperar(600);
-ok((await B.ev("Almacen.monologos().map(m=>m.title).join('|')")).includes('Sin red'), 'al volver la red sube lo pendiente');
+await hasta(async () => !(await A.ev('Almacen.estado().sincronizando')), 'que A recupere lo pendiente');
+await esperar(1000);
+const trasVolver = await hasta(async () => {
+  await B.ev('Almacen.sincronizar()');
+  await esperar(600);
+  const t = await B.ev("Almacen.monologos().map(m=>m.title).join('|')");
+  return t.includes('Sin red') ? t : null;
+}, 'que lo escrito sin red llegue a B');
+ok(!!trasVolver, 'al volver la red sube lo pendiente', trasVolver);
 
 console.log('\nfrase incorrecta');
 await B.ev("Almacen.frase('chorizo-chorizo'); 'ok'");
