@@ -4,6 +4,12 @@
 
 window.MONOLOGUES = [
   {
+    id: "prueba-action",
+    title: "Prueba de la Action",
+    author: "Nadie",
+    text: "Este texto no existía en monologues.js. Si aparece en la app, la cadena entera funciona: un fichero de texto, un push, y el resto lo hace GitHub."
+  },
+  {
     id: "turin-horse",
     title: "The Turin Horse",
     author: "Béla Tarr / László Krasznahorkai",
