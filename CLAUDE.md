@@ -29,5 +29,9 @@ actor. **Habla en español** (a veces en francés).
 - En vanilla el riesgo es que la pantalla deje de corresponder al estado. Por
   eso **sólo `pintar()` toca el DOM** y **sólo `cambiar()` modifica el estado**,
   y siempre repinta. Mantener esa disciplina.
-- `texto.js` es la única parte con lógica delicada. Tiene pruebas:
-  **`node pruebas.js` antes de cada commit.**
+- `texto.js` es la única parte con lógica delicada. Antes de cada commit:
+  **`node pruebas.js`** (el motor) y **`node pruebas-navegador.mjs`** (la app
+  entera en Chrome headless, sin instalar nada).
+- Una sola cuenta de palabras en toda la app: `Texto.contarPalabras`. No usar
+  `split(/\s+/).length`, que cuenta las rayas sueltas y descuadra con la
+  corrección.

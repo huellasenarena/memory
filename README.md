@@ -63,7 +63,25 @@ texto.js        trocear, normalizar, comparar   ← la única parte con lógica 
 almacen.js      localStorage, aislado
 app.js          estado + una sola función que pinta
 monologues.js   la biblioteca
-pruebas.js      node pruebas.js
+pruebas.js      node pruebas.js            (el motor, 24 comprobaciones)
+pruebas-navegador.mjs                     (la app entera en Chrome, 23 más)
+```
+
+## Pruebas
+
+```
+node pruebas.js                 el troceado, la tolerancia, las iniciales
+node pruebas-navegador.mjs      la app de punta a punta, contra el sitio publicado
+```
+
+La segunda arranca un Chrome sin ventana y escribe de verdad en la app: entra
+al ensayo, acierta, falla, comprueba que la palabra fallada sale tachada, cambia
+el tamaño de los trozos y mira que el progreso sobreviva, prueba el móvil y el
+modo oscuro. No hace falta instalar nada. Para probar antes de publicar:
+
+```
+python3 -m http.server 8787
+node pruebas-navegador.mjs http://localhost:8787/index.html
 ```
 
 Sin dependencias, sin compilación. Se abre haciendo doble clic en `index.html`.
