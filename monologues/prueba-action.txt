@@ -1,0 +1,5 @@
+Prueba de la Action
+Nadie
+
+Este texto no existía en monologues.js. Si aparece en la app, la cadena
+entera funciona: un fichero de texto, un push, y el resto lo hace GitHub.
