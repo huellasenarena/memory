@@ -37,15 +37,39 @@ distintas.
 
 ## Añadir un monólogo
 
-Desde la app, **añadir un texto** → *guardar*. Eso lo deja en ese aparato.
+Un monólogo es **un fichero de texto** en `monologues/`:
 
-Para tenerlo en todos, pulsa **copiar para el repo** y pega el bloque en
-`monologues.js`; al hacer push aparece en el móvil y en el ordenador.
+```
+Hamlet                 ← el título
+Shakespeare            ← el autor, o una línea en blanco
+                       ← una línea en blanco
+To be, or not to be…   ← el texto, con los saltos que quieras
+```
+
+Nada más. `monologues.js` lo regenera GitHub solo en cada push.
+
+**Desde la app** (móvil u ordenador) — *añadir un texto*, pegar, **añadir al
+repo**. Se abre GitHub con el fichero ya escrito: pulsas *Commit* y al minuto
+está en todos tus aparatos. Si el texto es demasiado largo para pasarlo por la
+URL, te baja el `.txt` para que lo dejes en `monologues/`.
+
+**Desde la terminal** — un solo comando:
+
+```
+pbpaste | node herramientas/nuevo.mjs "Hamlet" "Shakespeare"
+git add -A && git commit -m "Añadir Hamlet" && git push
+```
+
+**A mano** — crea el `.txt` en `monologues/` y haz push. Ya está.
+
+El botón *sólo en este aparato* guarda en el navegador sin pasar por git: sirve
+para empezar a ensayar ahora mismo, pero no viaja a los demás aparatos.
 
 ## Dónde vive cada cosa
 
-- **Los textos** están en `monologues.js`, versionados por git. Van con el
-  repo, así que están en todos los aparatos y no se pueden perder.
+- **Los textos** son los `.txt` de `monologues/`, versionados por git. Van con
+  el repo, así que están en todos los aparatos y no se pueden perder.
+  `monologues.js` es un fichero **generado** — no lo edites a mano.
 - **El progreso** vive en el `localStorage` de cada navegador, o sea que es de
   cada aparato. Va indexado por el *texto* de cada trozo, no por su posición:
   cambiar el tamaño de los trozos no borra lo aprendido.
@@ -57,21 +81,29 @@ y el resto de la app no se entera.
 ## Los ficheros
 
 ```
-index.html      la estructura, cuatro pantallas
-style.css       sólo negro y blanco
-texto.js        trocear, normalizar, comparar   ← la única parte con lógica difícil
-almacen.js      localStorage, aislado
-app.js          estado + una sola función que pinta
-monologues.js   la biblioteca
-pruebas.js      node pruebas.js            (el motor, 24 comprobaciones)
-pruebas-navegador.mjs                     (la app entera en Chrome, 23 más)
+index.html               la estructura, cuatro pantallas
+style.css                sólo negro y blanco
+texto.js                 trocear, normalizar, comparar  ← la lógica difícil
+almacen.js               localStorage, aislado
+app.js                   estado + una sola función que pinta
+
+monologues/*.txt         la biblioteca, en texto plano  ← la fuente
+monologues.js            generado a partir de ellos     ← no tocar
+herramientas/construir.mjs   .txt → monologues.js
+herramientas/nuevo.mjs       añadir uno desde la terminal
+.github/workflows/biblioteca.yml   lo regenera solo en cada push
+
+pruebas.js                          el motor
+pruebas-navegador.mjs               la app entera en Chrome
+herramientas/pruebas-construir.mjs  el constructor
 ```
 
 ## Pruebas
 
 ```
-node pruebas.js                 el troceado, la tolerancia, las iniciales
-node pruebas-navegador.mjs      la app de punta a punta, contra el sitio publicado
+node pruebas.js                          el troceado, la tolerancia, las iniciales
+node herramientas/pruebas-construir.mjs  el paso de .txt a monologues.js
+node pruebas-navegador.mjs               la app de punta a punta
 ```
 
 La segunda arranca un Chrome sin ventana y escribe de verdad en la app: entra

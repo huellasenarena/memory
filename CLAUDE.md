@@ -19,7 +19,7 @@ actor. **Habla en español** (a veces en francés).
   **dura con singular/plural y con los acentos** (en español distinguen).
 - **Estilo**: sólo negro y blanco, sin color ni en los errores (se tachan).
   Modo oscuro = el mismo blanco y negro invertido. Todo por teclado.
-- **Almacenamiento**: textos en `monologues.js` (git, en todos los aparatos),
+- **Almacenamiento**: textos en `monologues/*.txt` (git, en todos los aparatos),
   progreso en localStorage (por aparato), indexado por el texto normalizado del
   trozo y no por su posición. Se valoró un backend Cloudflare + D1 como el de
   `vocab-app` y se aplazó; `almacen.js` está aislado para poder cambiarlo.
@@ -30,8 +30,12 @@ actor. **Habla en español** (a veces en francés).
   eso **sólo `pintar()` toca el DOM** y **sólo `cambiar()` modifica el estado**,
   y siempre repinta. Mantener esa disciplina.
 - `texto.js` es la única parte con lógica delicada. Antes de cada commit:
-  **`node pruebas.js`** (el motor) y **`node pruebas-navegador.mjs`** (la app
+  **`node pruebas.js`** (el motor), **`node herramientas/pruebas-construir.mjs`**
+  (el paso de .txt a monologues.js) y **`node pruebas-navegador.mjs`** (la app
   entera en Chrome headless, sin instalar nada).
 - Una sola cuenta de palabras en toda la app: `Texto.contarPalabras`. No usar
   `split(/\s+/).length`, que cuenta las rayas sueltas y descuadra con la
   corrección.
+- **`monologues.js` es generado.** La fuente son los `.txt` de `monologues/`.
+  Editarlo a mano se pierde en el siguiente push, que lo regenera con la
+  Action `biblioteca`. Para añadir un texto: crear el `.txt`, nada más.

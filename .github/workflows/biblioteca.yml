@@ -1,0 +1,40 @@
+# Cada vez que aparece o cambia un .txt en monologues/, se regenera
+# monologues.js y se commitea solo. Así añadir un monólogo es añadir un
+# fichero de texto, también desde el móvil por la web de GitHub.
+
+name: biblioteca
+
+on:
+  push:
+    branches: [main]
+    paths: ['monologues/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  construir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: node herramientas/construir.mjs
+
+      - run: node pruebas.js
+
+      - name: Commitear monologues.js si ha cambiado
+        run: |
+          if git diff --quiet monologues.js; then
+            echo "monologues.js ya estaba al día."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add monologues.js
+          git commit -m "Regenerar la biblioteca"
+          git push

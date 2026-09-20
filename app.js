@@ -9,6 +9,9 @@
   'use strict';
 
   var TAMANOS = [8, 11, 15];
+  var REPO = 'huellasenarena/memory';
+  var RAMA = 'main';
+  var TOPE_URL = 6000;   // por encima de esto GitHub rechaza la URL: bajamos el fichero
   var $ = function (id) { return document.getElementById(id); };
 
   var estado = {
@@ -388,28 +391,45 @@
     if (!m) { this.textContent = 'falta el título o el texto'; return; }
     Almacen.guardarPropio(m);
     $('nuevo-titulo').value = $('nuevo-autor').value = $('nuevo-texto').value = '';
-    this.textContent = 'guardar';
+    this.textContent = 'sólo en este aparato';
     cambiar(function (e) { e.vista = 'biblioteca'; });
   };
 
-  $('copiar-nuevo').onclick = function () {
+  // El fichero tal cual va a vivir en monologues/: título, autor, texto.
+  function comoFichero(m) {
+    return m.title + '\n' + m.author + '\n\n' + m.text + '\n';
+  }
+
+  function bajarFichero(nombre, contenido) {
+    var url = URL.createObjectURL(new Blob([contenido], { type: 'text/plain' }));
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = nombre;
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  $('subir-nuevo').onclick = function () {
     var m = recogerNuevo();
     if (!m) { this.textContent = 'falta el título o el texto'; return; }
-    var bloque = [
-      '  {',
-      "    id: '" + m.id + "',",
-      "    title: " + JSON.stringify(m.title) + ',',
-      "    author: " + JSON.stringify(m.author) + ',',
-      '    text: `' + m.text.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${') + '`',
-      '  },'
-    ].join('\n');
-    var boton = this;
-    navigator.clipboard.writeText(bloque).then(function () {
-      boton.textContent = 'copiado';
-      setTimeout(function () { boton.textContent = 'copiar para el repo'; }, 1500);
-    }, function () {
-      boton.textContent = 'no se pudo copiar';
-    });
+
+    var ruta = 'monologues/' + m.id + '.txt';
+    var contenido = comoFichero(m);
+    var url = 'https://github.com/' + REPO + '/new/' + RAMA +
+              '?filename=' + encodeURIComponent(ruta) +
+              '&value=' + encodeURIComponent(contenido);
+
+    if (url.length > TOPE_URL) {
+      // Texto demasiado largo para meterlo en la URL: se baja el fichero.
+      bajarFichero(m.id + '.txt', contenido);
+      $('nota-nuevo').textContent = 'El texto es muy largo para pasarlo por la URL, ' +
+        'así que te he bajado ' + m.id + '.txt. Déjalo en monologues/ del repo y haz push.';
+      return;
+    }
+
+    window.open(url, '_blank', 'noopener');
+    $('nota-nuevo').textContent = 'Se ha abierto GitHub con ' + ruta +
+      ' ya escrito. Pulsa Commit y al minuto lo tienes en todos tus aparatos.';
   };
 
   pintar();
