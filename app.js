@@ -419,17 +419,12 @@
               '?filename=' + encodeURIComponent(ruta) +
               '&value=' + encodeURIComponent(contenido);
 
-    if (url.length > TOPE_URL) {
-      // Texto demasiado largo para meterlo en la URL: se baja el fichero.
-      bajarFichero(m.id + '.txt', contenido);
-      $('nota-nuevo').textContent = 'El texto es muy largo para pasarlo por la URL, ' +
-        'así que te he bajado ' + m.id + '.txt. Déjalo en monologues/ del repo y haz push.';
-      return;
-    }
-
-    window.open(url, '_blank', 'noopener');
-    $('nota-nuevo').textContent = 'Se ha abierto GitHub con ' + ruta +
-      ' ya escrito. Pulsa Commit y al minuto lo tienes en todos tus aparatos.';
+    // El editor nuevo de GitHub ya no rellena el fichero desde la URL, así
+    // que abrirlo sólo daba un error. Hasta que la app sepa guardar sola,
+    // bajamos el .txt, que sí funciona.
+    void url;
+    bajarFichero(m.id + '.txt', contenido);
+    $('nota-nuevo').textContent = 'Bajado ' + m.id + '.txt — déjalo en monologues/ y haz push.';
   };
 
   pintar();
