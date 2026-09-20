@@ -9,7 +9,15 @@ function ok(cond, nombre, extra) {
   else { fallos++; console.log('  ✗ ' + nombre + (extra ? '\n      ' + extra : '')); }
 }
 
-var texto = globalThis.MONOLOGUES[0].text;
+// Las pruebas del motor miden SIEMPRE el mismo texto, se llame como se llame
+// y haya los monologos que haya en la biblioteca. Cogerlo por posicion
+// ([0]) ataba estas pruebas al contenido de monologues/.
+var patron = globalThis.MONOLOGUES.find(function (m) { return m.id === 'turin-horse'; });
+if (!patron) {
+  console.error('\nFalta monologues/turin-horse.txt, que es el texto de referencia.\n');
+  process.exit(1);
+}
+var texto = patron.text;
 
 console.log('\ntrocear');
 [8, 11, 15].forEach(function (max) {
